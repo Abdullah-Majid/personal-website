@@ -2,6 +2,7 @@
 import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import Blog from "./blog.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../config";
 ---
 
@@ -14,8 +15,8 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../config";
     <div class="body-content">
       <Header title={SITE_TITLE} />
       <main>
-        <h1>Hey 👋, I'm Abdullah a fullstack developer 💻.</h1>
-        <p>Watch this space for more exciting things to come...</p>
+        <h1>Hey 👋, I'm Abdullah a fullstack developer 💻</h1>
+        <p>Learn a bit more about me <a href="/blog/first-post">here</a></p>
       </main>
     </div>
     <Footer />
