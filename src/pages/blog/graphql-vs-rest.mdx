@@ -1,0 +1,486 @@
+---
+layout: "../../layouts/BlogPost.astro"
+title: "REST Vs GraphQL - API Showdown"
+description: "API Showdown"
+pubDate: "29 May 2023"
+---
+
+## Introduction
+
+Hey there 👋!
+
+As you can guess from the title today we'll be comparing two popular API architectures: REST and GraphQL.
+
+We'll look at both API styles covering their fundamental principles, advantages and disadvantages with some examples in between.
+
+So pull up a chair, grab your favourite hot drink ☕ and let's get into it!
+
+#### What is an API?
+
+An **Application Programming Interface** (API) is software that defines set of rules and protocols to enable applications to communicate and integrate together.
+
+In the context of web services, an API facilitates communication between a browser (client) and a web server (server). The client may request data such as a user profile and the server responds with that particular data.
+
+A common analogy to describe the function of an API would be a menu in a restaurant.
+
+The table below breaks down how the two interactions are similar:
+
+|                          | Restaurant                                                                                                                                                                                                                                          | API                                                                                                                                                                     |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Requesting Data**      | You (the customer) look through the menu, which has all dishes and their descriptions. You use this menu to decide on what to eat.                                                                                                                  | You (the client) send a request specifying the data you want to access or the action you want to perform.                                                               |
+| **Communication Format** | The menu itself is a defined format for presenting the available options. You tell the waiter what you want by using the menu item number or name as the communication format and you expect to have a dish that matches the description or picture | An API defines the structure of data. This ensures consistent and predictable communication between the client and server.                                              |
+| **Data Retrieval**       | Once you have decided on your order, you tell the waiter using the agreed upon communication format who then passes on the order to the kitchen.                                                                                                    | When you make a request to an API, it processes your request and retrieves the requested data or performs the specified action.                                         |
+| **Data Response**        | The kitchen prepares the meal according to the instructions provided by the waiter, and the waiter brings the order to your table.                                                                                                                  | The API retrieves the requested data or performs the action you requested, and it sends back a response to your client application.                                     |
+| **Response Format**      | The meal is presented to you in the same format as was described in the menu or shown in the image.                                                                                                                                                 | The API's response is structured in a predefined format, such as JSON or XML, making it easier for your client application to understand and process the received data. |
+
+## REST
+
+### What is it?
+
+REST stands for Representational State Transfer and defines an API architecture that enables communication between software systems over the internet. REST APIs follow a client-server model where the client makes HTTP requests to the server and the server processes and sends a response back. A REST API conforms to the following standards:
+
+- Stateless transactions meaning that the server does not store information about the client or previous requests.
+- The API exposes resources the client can access or mutate. These resources are identified and accessed by a unique URL.
+- Standard HTTP methods are used to perform operations on resources.
+- A uniform interface which defines a consistent way for interacting with resources such as using JSON to represent data in requests and responses.
+
+### Key Concepts
+
+Let's understand some of the fundamental concepts around REST APIs.
+
+#### An example request
+
+If you look at the URL in the browser of the YouTube video on your second monitor that you _"really needed to be more productive at work"_ you might find something that looks like:
+
+`youtube.com/watch?v={some random gibberish}&ab_channel={more random gibberish}`
+
+This is essence is your browser making a request to the YouTube servers to get that video. Let's unpack the anatomy of a request starting with the method.
+
+##### HTTP Method
+
+HTTP (Hypertext Transfer Protocol) is used to transport information between a client and server - it's the main way we communicate over the internet. REST APIs use HTTP to faciliate client requests.
+
+HTTP consists of several methods which define the type of request we're making. Conveniently, these methods do as their namesake. The 4 main ones we're interested in are:
+
+- `GET: Gets a resource`
+- `POST: Creates a new resource`
+- `PUT: Updates a resource`
+- `DELETE: Deletes a resource`
+
+These methods allow an API to have **CRUD (Create, Read, Update, Delete)** functionality.
+
+An API request will specify which of these actions we wish to initiate. For example, an application will use a `GET` request to retrieve the comments under your 'beach vibes 🏖️ ☀️' Instagram post.
+
+##### Route/Endpoint
+
+The API route or endpoint is the URL you're requesting. The full route may look something like this:
+`https://{base_api_route}/{some_endpoint}`
+
+The _base route_ will be the same for every request however the route or path after this determines the resource being requested. These paths can help ensure that resources remain organised and requested in a predictable way. For example:
+
+`GET https://icanhazdadjoke.com/j/08EQZ8EQukb`
+
+The above example from a dad jokes API contains parameters in the URL to specify exactly what joke we want to see. Path paramters allow for data sent in a GET request.
+
+> Did you hear about the guy whose whole left side was cut off? He's all right now.
+
+In case you wanted to know what the joke was.
+
+##### Headers
+
+HTTP Request headers provide additional information to both the client and server such as content type, directives for caching and authentication eg. oAuth bearer tokens. Headers follow a key-value structure separated by a colon `:` for instance: `content-type: application/json`
+
+##### Body
+
+The body contains the data to be sent to the server. The `POST`, `PUT` and `DELETE` methods use the request body. For example the request body for a `POST` operation for a new tweet may look something like.
+
+```json
+{
+    "user_id": 1,
+    "timestamp": 123456,
+    "tweet_content": "Elon Out"
+    ...
+}
+```
+
+The fields in this body will most likely match the fields in the database and the data will then be stored in the database and retrieved later when a follower of this person wants to reload their feed.
+
+#### An example response
+
+```json
+{
+  "id": "R7UfaahVfFd",
+  "joke": "My dog used to chase people on a bike a lot.
+           It got so bad I had to take his bike away.",
+  "status": 200
+}
+```
+
+The above snippet shows an example response for a request (again from the dad jokes API 🥸, I'm so sorry).
+
+##### Status
+
+The response object contains a HTTP status code which indicates one of the following:
+
+- `2XX: Success`
+- `3XX: Redirect`
+- `4XX: Client Error` eg. Unauthorized user
+- `5XX: Server Error` eg. API Gateway timed out
+
+##### Body
+
+The response body will contain the data sent back by the server.
+
+#### Reading Data
+
+In order to read data using a REST API you would need to use a `GET` request. For our examples we will use `curl` and its syntax to demonstrate our API interactions.
+
+The syntax for the `curl` command is as follows:
+
+```
+curl [options] [URL]
+```
+
+The options can be:
+
+- `-X` or `--request` for defining the HTTP method
+- `-i` or `--include` to include response headers
+- `-d` or `--data` the data to be send
+- `-H` or `--header` additional header to send
+
+Let's assume we have an endpoint for retrieving information about football players ⚽ for an application we're building - we'll use a base URL of `my-football-app`. The players database stores the following information about each player:
+
+- id
+- name
+- age
+- position
+- current team
+- history of teams played for
+
+The request for getting all players from our data store may look something like
+
+`curl --request GET my-football-app/players`.
+
+Here we have created an endpoint that clearly defines that the players repository within the application is being accessed.
+
+The corresponding response object would be:
+
+```json
+data: [
+    {
+        "id": 1,
+        "name": "Lionel Messi",
+        "age": 35,
+        "position": "Striker",
+        "currentTeam": "Paris Saint-Germain",
+        "teamsPlayedFor": ["Paris Saint-Germain", "FC Barcelona"]
+    },
+    {
+        "id": 2,
+        "name": "Cristiano Ronaldo",
+        "age": 38,
+        "position": "Striker",
+        "currentTeam": "Al Nassr",
+        "teamsPlayedFor": [
+            "Al Nassr",
+            "Manchester United",
+            "Juventus",
+            "Real Madrid",
+            "Sporting Lisbon"
+        ]
+    },
+    ...
+]
+```
+
+What about if we want to retrieve the information about a specific player only?
+
+We would need some way of letting the server know what player we're interested in. Thankfully, we can build an endpoint in the `/players` route that takes an argument to specify the player by id, similar to the dad jokes API example above.
+
+The request for retrieving information about Ronaldo may look something like
+
+`curl --request GET my-football-app/players/2`.
+
+We can uniquely identify Ronaldo by the object's `id` as it is represented in the data store.
+
+#### Writing Data
+
+To add a new footballer to our database we may use the same endpoint name `/players` to demonstrate the same resource is being affected however this time the endpoint is associated with the `POST` method and the relevant data is passed in the message body.
+
+**NOTE:** Even though the endpoint names are the same, because they are associated with different HTTP methods the server will route the request to the appropriate endpoint.
+
+Our request may look like:
+
+```
+curl --request POST --data
+'{
+  "name": "Bruno Fernandes",
+  "age": 29,
+  "position": "Midfielder",
+  "currentTeam": "Manchester United",
+  "teamsPlayedFor": [
+    "Manchester United",
+    "Sporting Lisbon",
+    "Udinese",
+    "Sampdoria",
+    "Novara"
+  ]
+}'
+my-football-app/players
+```
+
+So using REST APIs is relatively straightforward and an extremely common way to build and consume web services. In our examples we defined 3 API routes:
+
+- `GET /players` - to get all players
+- `GET /players/{player_id}` - to get a specific player
+- `POST /players` - to add a new player
+
+## GraphQL
+
+Aaaaand in the pink corner, the contender built out of Facebook (Meta) weighing in at 9.82MB (the size of the Strawberry 🍓 repo). It's a lean, mean, data fetching machine. It's GraphQL!!!
+
+### What is it?
+
+GraphQL is a data query language for APIs built for declarative data retrieval. Whereas with our REST API we were not able to specify exactly what we want the response data to look like, GraphQL enables client requests to dictate exactly what the response data fields should contain. This ensures requests can be made efficiently and avoids the issues of:
+
+##### Overfetching
+
+Overfetching is when more data is sent back by the server than is required by the client. For example, imagine we have a view in an application that needs to list some book titles. We can retrieve this information by hitting the `/books` endpoint however we are likely to get back a lot of redundant information such as: publisher, ISBN, author etc. This unused information is an inefficient use of network resources since it adds no value.
+
+##### Underfetching
+
+Conversely, underfetching occurs when the data sent back isn't rich enough for our required use case meaning additional requests are needed to fulfill our data needs. For example, let's say the same screen as before now needs to show the book title and a star rating next to it (5 stars for this blog please).
+
+Let's also say we have an additional endpoint `/books/{book_id}/rating`. For each book in our list we would have to make 2 requests to the server in order to have the relevant information for our app since the `/books` endpoint alone doesn't contain all the information we need.
+
+### Key Concepts
+
+#### Schema and Types
+
+GraphQL has its own type system out of the box and uses a syntax for defining the schema of an API (similar to a database schema). This schema represents a strict interface between the client and server in terms of how the client can request data. An example type is given below:
+
+```graphql
+type FootballPlayer {
+  name: String!
+  age: Int!
+  position: String!
+}
+```
+
+We've created a type called `FootballPlayer` which currently has 3 fields associated with it:
+
+- name
+- age
+- position
+
+Each field has an associated type with it, such as `String` or `Int` which are some basic (primitive) types within GraphQL. The `!` after the type means this field is non-nullable or required when using this type. However we can also associate our custom made types with one another. Given another type `Team`
+
+```graphql
+type Team {
+  name: String!
+  league: String!
+  currentleaguePosition: Int!
+}
+```
+
+Let's say we want to associate our `FootballPlayer` type with a team. We could nest the `Team` type as follows:
+
+```graphql
+type FootballPlayer {
+  name: String!
+  age: Int!
+  position: String!
+  currentTeam: Team
+  teamsPlayedFor: [Team!]!
+}
+```
+
+We associate the `currentTeam` field with our `Team` type and let it be nullable since players may be retired or out of contract etc.
+
+For the `teamsPlayedFor` field we want this to be a list of teams since a player may play for many clubs throughout their career. We use the non-nullable operator twice here to indicate that the field should be an array and each element within the array should be of type `Team`.
+
+#### Queries
+
+A query in GraphQL is equivalent to a `GET` request within a REST API - it is used to fetch data. Unlike REST APIs where we may have many endpoints for getting different types and structures of data, GraphQL only exposes a single endpoint `/graphql` and relies on the client to define the data structure needed.
+
+Let's continue with our football example with a basic query:
+
+```graphql
+{
+  allPlayers {
+    name
+    position
+    currentTeam
+  }
+}
+```
+
+The query takes the form of `queryName` (known as the _root field_) followed by a list of fields that make up the response payload.
+
+In our example we've specified a query called `allPlayers` to return us every player from our data store with the following attributes:
+
+- name
+- position
+- current team.
+
+Note that we have an extra field on the `FootballPlayer` type `teamsPlayedFor` that we did not include. We would expect the response from the server to look something like:
+
+```json
+{
+    "allPlayers": [
+        {
+            "name": "Lionel Messi",
+            "position": "Striker",
+            "currentTeam": "Paris Saint-Germain"
+        },
+        ...
+    ]
+}
+```
+
+See how we get back exactly the amount of data we've requested using a single request - no overfetching or underfetching in sight!
+
+Much like with REST APIs we can also provide arguments to our requests.
+
+Maybe we only want the information for a particular player, who we identify by name, we may specify a query such as:
+
+```graphql
+{
+    player(name: String!) {
+        name
+        position
+        currentTeam
+        teamsPlayedFor
+    }
+}
+```
+
+We now take an input parameter `name` which we can use in a filter expression to get a specific player.
+
+So we can read data using GraphQL queries - fantastic!
+
+How about writing data?
+
+#### Mutations
+
+A mutation in GraphQL is anything that changes data so it would encapsulate:
+
+- Creating new data
+- Updating existing data
+- Deleting data
+
+These are akin to the `POST`, `UPDATE` and `DELETE` methods mentioned above.
+We define mutations with a similar syntax to queries. Let's define a mutation for creating a new footballer:
+
+```graphql
+input FootballPlayerInput {
+    name: String!
+    age: Int!
+    position: String!
+}
+mutation {
+  createPlayer(input: FootballPlayerInput!) {
+    name
+    age
+    currentTeam
+  }
+}
+```
+
+Just like with our query we have our root field `createPlayer` that takes an argument `input`.
+
+We've defined an input type `FootballPlayerInput` (you must use the `input` keyword when defining types that are used as arguments in mutations) which closely matches our `FootballPlayer` type meaning we gain the benefits of type-checking and predictability with our mutations.
+
+We also specify what we want the response payload to contain. While this may not be immediately helpful since we're currently asking the server to send us back the same data we just sent, where this does have advantages is for cases where additional data is generated on the backend.
+
+Because we're good software developers we know that entities in our database should be uniquely idetifiable in some way. In most cases that's by adding an `id` field to the row in the database so let's extend our `FootballPlayer` type to account for this:
+
+```graphql
+type FootballPlayer {
+  id: ID!
+  name: String!
+  age: Int!
+  position: String!
+  currentTeam: Team
+  teamsPlayedFor: [Team!]!
+}
+```
+
+This `id` field is generated by the GraphQL server (not something we send in the input argument) and so we can adapt our mutation to now return us:
+
+```graphql
+
+mutation {
+  createPlayer(input: FootballPlayerInput!) {
+    id
+    name
+    age
+    currentTeam
+  }
+}
+
+```
+
+which contains the new `id` property which we didn't previously have and can now use. Let's also update our `player` query to use this `id` field instead of the `name`.
+
+#### The Full Schema
+
+```graphql
+type FootballPlayer {
+  id: ID!
+  name: String!
+  age: Int!
+  position: String!
+  currentTeam: Team
+  teamsPlayedFor: [Team!]!
+}
+
+input FootballPlayerInput {
+  name: String!
+  age: Int!
+  position: String!
+}
+
+type Mutation {
+  createPlayer(input: FootballPlayerInput!): FootballPlayer!
+}
+
+type Query {
+  allPlayers: [FootballPlayer]!
+  player(id: ID!): FootballPlayer!
+}
+```
+
+A couple of things worth noting here.
+
+The schema consists of all of our types, mutations and queries. It contains our types that we previously defined `FootballPlayer` and `FootballPlayerInput` as well as some root types: `Query` and `Mutation`.
+
+These root types are the entry points for client requests. We define our `createPlayer` mutation stating that it takes a parameter of type `FootballPlayerInput` and that it returns a type `FootballPlayer`.
+
+Similarly our root Query type has the `allPlayers` and `player` queries which return a list of `FootballPlayers` and a single `FootballPlayer` respectively.
+
+The client will also maintain this exact schema therefore both the client and server now have a common agreement for how data is called and manipulated in this application.
+
+The client can only use the queries and mutations defined and can expect responses that match the types defined. The backend will maintain a mapping between the queries/mutations and the underlying resolvers (functions) that implement them (saving this one for another article 👀) ensuring that return types also fulfill the schema requirements.
+
+## Comparison
+
+We've covered some basics about both REST APIs and GraphQL, just before we wrap up let's have a look at both side by side.
+
+|     | REST                                                                                        | GraphQL                                                                            |
+| --- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+|     | Server-Driven                                                                               | Client-Driven                                                                      |
+|     | No concept of schema/type system.                                                           | Strongly typed and defines what the API looks like.                                |
+|     | Prone to overfetching or underfetching data                                                 | Solves the problem of overfetching and underfetching.                              |
+|     | In-built cache support.                                                                     | Does not have an in-built caching support system. Requires libraries to implement. |
+|     | Fixed data per API call. Suitable for applications with data that doesn't change too often. | Specific data per API call suitable for rapidly changing data or complex queries.  |
+|     | Challenging to maintain different versions of a REST API.                                   | `@deprecated` annotation in schema indicates which field(s) can no longer be used. |
+|     | Easier to learn with lots of community support                                              | Harder to learn with growing community support                                     |
+
+## Conclusion
+
+So that was a whirlwhind tour of REST and GraphQL APIs. If you're still with me thank you first and foremost and I hope you took something away from this article.
+
+We looked at the building blocks of modern web APIs and how two different architectures look to tackle the same problem of data fetching. If you came here looking for an answer about which is better I'm afraid the best I can do is say "it depends". In software development there are always trade offs so it's about making the best decision for your use case with the knowledge and resources available to you.
+
+Keep your eyes peeled for the part 2 of this article series where we'll look at building out a REST and GraphQL API but for now, that's all folks!
